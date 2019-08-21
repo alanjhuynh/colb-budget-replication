@@ -1,58 +1,68 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+import dash
+import dash_core_components as dcc
+import dash_html_components as html
 import pandas as pd
+import plotly
 import plotly.graph_objects as go
 
 df=pd.read_csv('./data/wide_budget.csv')
 
+def clean_column_name(x):
+    return x.replace(' ','_').lower()
 
-fig = go.Figure()
+external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
-for i in range(len(df.columns)-1):
-    fig.add_trace(go.Scatter(x=df.columns[1:], y=df.iloc[i][1:], name=df.iloc[i][0], stackgroup='one'))
+colors = {
+    'background': '#111111',
+    'text': 'black',
+    'default': 'black',
+    'border': 'transparent'
+}
 
-fig.show()
-
-
-fig = go.Figure()
-
-for i in range(len(df.columns)-1):
-    fig.add_trace(go.Scatter(x=df.columns[1:], y=df.iloc[i][1:], name=df.iloc[i][0]))
-    
-fig.show()
+app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
 
-fig = go.Figure()
+stackedLineFig = go.Figure()
 
 for i in range(len(df.columns)-1):
-    fig.add_trace(go.Scatter(x=df.columns[1:], y=df.iloc[i][1:], name=df.iloc[i][0], stackgroup='one', groupnorm='percent'))
-
-fig.show()
-
-
-fig = go.Figure()
-
-for i in range(len(df.columns)-1):
-    fig.add_trace(go.Bar(x=df.columns[1:], y=df.iloc[i][1:], name=df.iloc[i][0]))
-
-fig.show()
+    stackedLineFig.add_trace(go.Scatter(x=df.columns[1:], y=df.iloc[i][1:], name=df.iloc[i][0], stackgroup='one'))
+#stackedLineFig.show()
 
 
-fig = go.Figure()
+lineFig = go.Figure()
 
 for i in range(len(df.columns)-1):
-    fig.add_trace(go.Bar(x=df.columns[1:], y=df.iloc[i][1:], name=df.iloc[i][0]))
+    lineFig.add_trace(go.Scatter(x=df.columns[1:], y=df.iloc[i][1:], name=df.iloc[i][0]))    
+#lineFig.show()
 
-fig.update_layout(barmode='stack')
-fig.show()
+
+percentLineFig = go.Figure()
+
+for i in range(len(df.columns)-1):
+    percentLineFig.add_trace(go.Scatter(x=df.columns[1:], y=df.iloc[i][1:], name=df.iloc[i][0], stackgroup='one', groupnorm='percent'))
+#percentLineFig.show()
+
+
+groupedBarFig = go.Figure()
+
+for i in range(len(df.columns)-1):
+    groupedBarFig.add_trace(go.Bar(x=df.columns[1:], y=df.iloc[i][1:], name=df.iloc[i][0]))
+#groupedBarFig.show()
+
+
+stackedBarFig = go.Figure()
+
+for i in range(len(df.columns)-1):
+    stackedBarFig.add_trace(go.Bar(x=df.columns[1:], y=df.iloc[i][1:], name=df.iloc[i][0]))
+stackedBarFig.update_layout(barmode='stack')
+#fig.show()
 
 
 labels=[]
 values=[]
-
-def clean_column_name(x):
-    return x.replace(' ','_').lower()
 
 for i in range(len(df['2019-20 Proposed Budget'])-1):
     labels.append(df.iloc[i][0])
@@ -61,10 +71,34 @@ for i in range(len(df['2019-20 Proposed Budget'])-1):
     values[i] = values[i].replace('$','')
     values[i] = int(values[i])
     
-values
-fig = go.Figure(data=[go.Pie(labels=labels, values=values)])
-fig.show()
+pieFig = go.Figure(data=[go.Pie(labels=labels, values=values)])
+#pieFig.show()
 
 
+app.layout = html.Div(children=[
+    html.Div(children=[
+        dcc.Graph(
+            figure = stackedLineFig
+        ),
+        dcc.Graph(
+            figure = lineFig
+        ),
+        dcc.Graph(
+            figure = percentLineFig
+        ),
+        dcc.Graph(
+            figure = groupedBarFig
+        ),
+        dcc.Graph(
+            figure = stackedBarFig
+        ),
+    ])
+    
+])
 
+
+if __name__ == '__main__':
+    #app.run_server(debug=True)
+
+    app.run_server(host='0.0.0.0', port = 8050)
 
